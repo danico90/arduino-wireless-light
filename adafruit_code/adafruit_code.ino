@@ -1,32 +1,51 @@
-/*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
- 
-  This example code is in the public domain.
+#include <VirtualWire.h>
+#include <VirtualWire_Config.h>
 
-  To upload to your Gemma or Trinket:
-  1) Select the proper board from the Tools->Board Menu
-  2) Select USBtinyISP from the Tools->Programmer
-  3) Plug in the Gemma/Trinket, make sure you see the green LED lit
-  4) For windows, install the USBtiny drivers
-  5) Press the button on the Gemma/Trinket - verify you see
-     the red LED pulse. This means it is ready to receive data
-  6) Click the upload button above within 10 seconds
-*/
- 
-int led = 1; // blink 'digital' pin 1 - AKA the built in red LED
+//
+byte message[VW_MAX_MESSAGE_LEN]; // a buffer to store the incoming messages
+byte messageLength = VW_MAX_MESSAGE_LEN; // the size of the message
+int outPin = 1;
+int inPin = 0;
 
-// the setup routine runs once when you press reset:
-void setup() {
-  // initialize the digital pin as an output.
-  pinMode(led, OUTPUT);
+char code[100] = "123"; //
+boolean correct = false;
 
+void setup()
+{
+  pinMode(outPin, OUTPUT);
+  
+  // Initialise the IO and ISR
+  vw_set_rx_pin(inPin);
+  vw_set_ptt_inverted(true); // Required for DR3100
+  vw_setup(2000);	 // Bits per sec
+
+  vw_rx_start();       // Start the receiver PLL running
+}
+void loop()
+{
+  
+  uint8_t buf[VW_MAX_MESSAGE_LEN];
+  uint8_t buflen = VW_MAX_MESSAGE_LEN;
+
+
+  if (vw_get_message(buf, &buflen)) // Non-blocking
+  {
+    
+    int i;
+    for (i = 0; i < buflen; i++)
+    {
+      if (buf[i] == code[i]) {
+        digitalWrite(outPin, true);
+      }
+      else {
+        digitalWrite(outPin, false);
+      }
+    }
+    //delay(1);
+    
+    
+  }
+  
 }
 
-// the loop routine runs over and over again forever:
-void loop() {
-    digitalWrite(led, HIGH); 
-    delay(5000);
-    digitalWrite(led, LOW);
-    delay(5000);
-}
+
